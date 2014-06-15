@@ -1,20 +1,44 @@
 # Reproducible Research: Peer Assessment 1
-
-
 ## Loading and preprocessing the data
-
-
+```{r echo=TRUE}
+data <- read.csv("activity.csv")
+data$date <- as.Date(as.character(data$date))
+```
 
 ## What is mean total number of steps taken per day?
+```{r echo=TRUE}
+library(plyr)
+options( scipen = 20 )
 
+ds <- ddply(data, .(date), summarize, sum=sum(steps))
+hist(ds$sum, breaks=25, main = "Total number of stepes taken each day", xlab = "Number of steps", col="blue")
 
+```
+   
+The mean of total number of steps taken per day is __`r mean(ds$sum, na.rm = T) `__, and the median is __`r median(ds$sum, na.rm = T) `__.
 
 ## What is the average daily activity pattern?
+```{r echo=TRUE, fig.width=10}
+#data <- data[complete.cases(data),]
+df <- ddply(data, .(interval), summarise, steps = mean(steps, na.rm = T))
+plot(df, type="l", ylab="Average number of steps taken", xlab = "5 minute interval")
+abline(v = df[df$steps == max(df$steps), "interval"], col="blue")
 
-
-
+```   
+   
+The 5-minute interval that contains the maximum average number of steps is __`r df[df$steps == max(df$steps), "interval"] `__. 
 ## Imputing missing values
+The number of missing values is __`r sum(!complete.cases(data))`__.
 
-
-
+I will input the missing values of my dataset by making them equal to zero
+```{r echo=TRUE}
+data[is.na(data$steps), "steps"] <- 0
+summary(data)
+ds <- ddply(data, .(date), summarize, sum=sum(steps))
+hist(ds$sum, breaks=25, main = "Total number of stepes taken each day", xlab = "Number of steps", col="blue")
+```
+   
+The mean of total number of steps taken per day after imputing NAs is __`r mean(ds$sum, na.rm = T) `__, and the median after imputing NAs is __`r median(ds$sum, na.rm = T) `__. There is a difference between the the observations made after imputing NAs and the the observations made before imputing NAs. When the original dataset is imputed with zeros, the mean and midian of the dataset is lowered since more data is accounted for while doing these calculations as compared to doing these calculations while eliminating rows with NAs.
 ## Are there differences in activity patterns between weekdays and weekends?
+
+
